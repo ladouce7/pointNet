@@ -13,6 +13,7 @@ config = {
     'num_classes' : 3,
     'msg' : True,
     'bn' : False
+    'shuffle' = False
     }
 
 if config['msg'] == True:
@@ -35,11 +36,11 @@ for i in range(length):
     real[i] = event[0,5]
 real = real[:-2]
     
-test_ds = load_dataset('data/AllEvents_size50_test.tfrecord', config['batch_size'])
+test_ds = load_dataset('data/AllEvents_size50_test.tfrecord', config['batch_size'], config['shuffle'])
 predicted_probabilities = model.predict(test_ds, batch_size=config['batch_size'])
 predictions = np.argmax(predicted_probabilities, axis=1)
 class_names = ['beam', 'two track', 'three track']
-print(real.shape, predictions.shape)
+
 if real.shape > predictions.shape:
     diff = real.shape - predictions.shape
     real = real[-diff]
