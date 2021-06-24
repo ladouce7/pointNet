@@ -97,7 +97,7 @@ if __name__ == '__main__':
     'lr' : 0.001,
     'num_classes' : 3,
     'msg' : True,
-    'bn' : False
+    'bn' : False,
     'shuffle' : True
     }
 

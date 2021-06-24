@@ -12,7 +12,7 @@ config = {
     'lr' : 0.001,
     'num_classes' : 3,
     'msg' : True,
-    'bn' : False
+    'bn' : False,
     'shuffle' = False
     }
 
@@ -44,5 +44,8 @@ class_names = ['beam', 'two track', 'three track']
 if real.shape > predictions.shape:
     diff = real.shape - predictions.shape
     real = real[-diff]
+    
+np.save('RealLabels', real)
+np.save('PredictedLabels', predictions)
 
 cnn.plot_confusion_matrix(real, predictions, class_names)
