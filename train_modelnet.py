@@ -1,6 +1,7 @@
 import os
 import sys
 import datetime
+import cnn_functions as cnn
 
 sys.path.insert(0, './')
 
@@ -15,7 +16,7 @@ from models.cls_ssg_model import CLS_SSG_Model
 tf.random.set_seed(1234)
 
 
-def load_dataset(in_file, batch_size):
+def load_dataset(in_file, batch_size, shuffle):
 
     assert os.path.isfile(in_file), '[error] dataset path not found'
 
@@ -47,7 +48,8 @@ def load_dataset(in_file, batch_size):
         return points, label
 
     dataset = tf.data.TFRecordDataset(in_file)
-    dataset = dataset.shuffle(shuffle_buffer)
+    if shuffle:
+        dataset = dataset.shuffle(shuffle_buffer)
     dataset = dataset.map(_extract_fn)
     dataset = dataset.map(_preprocess_fn)
     dataset = dataset.batch(batch_size, drop_remainder=True)
@@ -62,8 +64,8 @@ def train():
     else:
         model = CLS_SSG_Model(config['batch_size'], config['num_classes'], config['bn'])
 
-    train_ds = load_dataset(config['train_ds'], config['batch_size'])
-    val_ds = load_dataset(config['val_ds'], config['batch_size'])
+    train_ds = load_dataset(config['train_ds'], config['batch_size'], config['shuffle'])
+    val_ds = load_dataset(config['val_ds'], config['batch_size'], config['shuffle'])
 
     callbacks = [
     keras.callbacks.EarlyStopping(
@@ -74,7 +76,7 @@ def train():
     './logs/{}/model/weights.ckpt'.format(config['log_dir']), 'val_sparse_categorical_accuracy', save_best_only=True)
     ]
 
-    model.build(input_shape=(config['batch_size'], 8192, 3))
+    model.build(input_shape=(config['batch_size'], 50, 3))
     print(model.summary())
 
     model.compile(
@@ -83,16 +85,16 @@ def train():
     metrics=[keras.metrics.SparseCategoricalAccuracy()]
     )
 
-    model.fit(
+    history = model.fit(
     train_ds,
     validation_data = val_ds,
     validation_steps = 20,
     validation_freq = 1,
     callbacks = callbacks,
-    epochs = 100,
+    epochs = 10,
     verbose = 1
     )
-
+    cnn.plot_learning_curve(history)
 
 if __name__ == '__main__':
 
@@ -105,6 +107,7 @@ if __name__ == '__main__':
     'num_classes' : 3,
     'msg' : True,
     'bn' : False
+    'shuffle' : False
     }
 
     train()
