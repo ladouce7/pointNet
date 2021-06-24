@@ -13,7 +13,7 @@ config = {
     'num_classes' : 3,
     'msg' : True,
     'bn' : False,
-    'shuffle' = False
+    'shuffle' : False
     }
 
 if config['msg'] == True:
