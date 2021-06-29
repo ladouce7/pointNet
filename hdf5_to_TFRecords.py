@@ -26,8 +26,7 @@ import numpy as np
 # If you have multi-dimensional array, please start with:
 #     array = array.reshape(-1)
 def _int64_feature(value):
-    #value = list(map(int, value))
-    #value = np.array(list(map(int, value)))
+    value = np.array(list(map(int, value)))
     return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
 def _floats_feature(value):
@@ -43,11 +42,9 @@ def get_all_keys_from_h5(h5_file):
 # details of 9-D vector: https://github.com/charlesq34/pointnet/issues/7
 def get_feature(point_cloud):
     return {
-        #'x': _floats_feature(point_cloud[:, 0]),
-        #'y': _floats_feature(point_cloud[:, 1]),
-        #'z': _floats_feature(point_cloud[:, 2]),
         'points': _floats_feature(point_cloud[:, :3]),
-        'label': tf.train.Feature(int64_list=tf.train.Int64List(value=[int(point_cloud[0,5])]))
+        #'label': tf.train.Feature(int64_list=tf.train.Int64List(value=[int(point_cloud[0,12])]))    #for event classification
+        'labels' : _int64_feature(point_cloud[:,5])    #for track classification
     }
 
 def h5_to_tfrecord_converter(input_file_path, output_file_path):
