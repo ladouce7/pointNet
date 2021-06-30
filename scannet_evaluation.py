@@ -40,7 +40,7 @@ for i in range(length):
     
 test_ds = load_dataset('data/Mg22_size' + str(sample_size) + '_test.tfrecord', config['batch_size'], config['shuffle'])
 predicted_probabilities = model.predict(test_ds, batch_size=config['batch_size'])
-predictions = np.argmax(predicted_probabilities, axis=1)
+predictions = np.argmax(predicted_probabilities, axis=2)
 
 class_names = ['beam', '1', '2', '3', '4', '5', '6']
 
@@ -48,7 +48,16 @@ if real.shape[0] > predictions.shape[0]:
     diff = real.shape[0] - predictions.shape[0]
     real = real[:-diff,:]
     
+print('real shape:', real.shape)
+print('pred shape:', predictions.shape)
+
 np.save('RealLabels_Mg22_size' + str(sample_size), real)
 np.save('PredictedLabels_Mg22_size' + str(sample_size), predictions)
+
+real = real.flatten()
+predictions = predictions.flatten()
+
+print('real shape:', real.shape)
+print('pred shape:', predictions.shape)
 
 cnn.plot_confusion_matrix(real, predictions, class_names)
