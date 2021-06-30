@@ -20,7 +20,7 @@ def load_dataset(in_file, batch_size, shuffle):
 
     assert os.path.isfile(in_file), '[error] dataset path not found'
 
-    n_points = 50
+    n_points = 512     #change when inputting new data
     shuffle_buffer = 1000
     
     def _extract_fn(data_record):
@@ -64,10 +64,12 @@ def train():
     keras.callbacks.TensorBoard(
     './logs/{}'.format(config['log_dir']), update_freq=50),
     keras.callbacks.ModelCheckpoint(
-    './logs/{}/model/weights.ckpt'.format(config['log_dir']), 'val_sparse_categorical_accuracy', save_best_only=True)
+    './logs/{}/model/weights.ckpt'.format(config['log_dir']), 'val_sparse_categorical_accuracy', save_best_only=True),
+    tf.keras.callbacks.ReduceLROnPlateau(
+    monitor='val_loss', factor=0.2, patience=10, min_lr=0.00001)
     ]
 
-    model.build(input_shape=(config['batch_size'], 50, 3))
+    model.build(input_shape=(config['batch_size'], config['input_event_len'], 3))     
     print(model.summary())
 
     model.compile(
@@ -82,7 +84,7 @@ def train():
     validation_steps = 20,
     validation_freq = 1,
     callbacks = callbacks,
-    epochs = 10,
+    epochs = 100,
     verbose = 1
     )
     cnn.plot_learning_curve(history)
@@ -90,15 +92,16 @@ def train():
 if __name__ == '__main__':
 
     config = {
-    'train_ds' : 'data/AllEvents_size50_train.tfrecord',
-    'val_ds' : 'data/AllEvents_size50_val.tfrecord',
+    'train_ds' : 'data/Mg22_size512_train.tfrecord',     #change
+    'val_ds' : 'data/Mg22_size512_val.tfrecord',    #change
     'log_dir' : 'msg_1',
-    'batch_size' : 4,
+    'batch_size' : 8,
     'lr' : 0.001,
-    'num_classes' : 3,
+    'num_classes' : 6,    #change
     'msg' : True,
     'bn' : False,
-    'shuffle' : True
+    'shuffle' : True,
+    'input_event_len' : 128
     }
 
     train()

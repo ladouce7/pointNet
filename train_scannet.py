@@ -1,6 +1,7 @@
 import os
 import sys
 import datetime
+import cnn_functions as cnn
 
 sys.path.insert(0, './')
 
@@ -18,7 +19,7 @@ def load_dataset(in_file, batch_size, shuffle):
 
     assert os.path.isfile(in_file), '[error] dataset path not found'
 
-    n_points = 512     #CHANGE WHEN INPUTTING NEW DATA
+    n_points = 1024     #CHANGE WHEN INPUTTING NEW DATA
     shuffle_buffer = 1000
 
     def _extract_fn(data_record):
@@ -66,7 +67,9 @@ def train():
     keras.callbacks.TensorBoard(
     './logs/{}'.format(config['log_dir']), update_freq=50),
     keras.callbacks.ModelCheckpoint(
-    './logs/{}/model/weights'.format(config['log_dir']), 'val_sparse_categorical_accuracy', save_best_only=True)
+    './logs/{}/model/weights'.format(config['log_dir']), 'val_sparse_categorical_accuracy', save_best_only=True),
+    keras.callbacks.ReduceLROnPlateau(
+    monitor='val_loss', factor=0.2, min_delta=0.01, patience=6, min_lr=0.000001)
     ]
 
     model.build((config['batch_size'], config['input_event_len'], 3))
@@ -78,7 +81,7 @@ def train():
     metrics=[keras.metrics.SparseCategoricalAccuracy()]
     )
 
-    model.fit(
+    history = model.fit(
     train_ds,
     validation_data=val_ds,
     validation_steps=10,
@@ -87,22 +90,25 @@ def train():
     epochs=100,
     verbose=1
     )
+    cnn.plot_learning_curve(history)
 
 
 if __name__ == '__main__':
-
+    
+    sample_size = 1024
+    
     config = {
-    'train_ds' : 'data/Mg22_size512_train.tfrecord',    #change
-    'val_ds' : 'data/Mg22_size512_val.tfrecord',    #change
+    'train_ds' : 'data/Mg22_size' + str(sample_size) + '_train.tfrecord',   
+    'val_ds' : 'data/Mg22_size' + str(sample_size) + '_val.tfrecord',   
     'log_dir' : 'scannet_1',
     'log_freq' : 10,
     'test_freq' : 100,
-    'batch_size' : 4,
-    'num_classes' : 7,    #change
+    'batch_size' : 32,
+    'num_classes' : 7,    #CHANGE
     'lr' : 0.001,
     'bn' : False,
-        'shuffle' : True,
-        'input_event_len' : 512    #change
+    'shuffle' : True,
+    'input_event_len' : sample_size    
     }
 
     train()
