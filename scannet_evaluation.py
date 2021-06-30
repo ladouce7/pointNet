@@ -34,7 +34,7 @@ real = np.zeros((length, sample_size),int)
 for i in range(length):
     key = keys[i]
     event = test_ds_h5[key]
-    real[i] = event[0,-1]
+    real[i] = event[:,5]
 #make sure labels aren't one hot encoded
 #concatenate the predictions vector for each 
     
