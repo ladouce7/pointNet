@@ -1,7 +1,7 @@
 import os
 import sys
 import datetime
-import cnn_functions as cnn
+import numpy as np
 
 sys.path.insert(0, './')
 
@@ -19,7 +19,7 @@ def load_dataset(in_file, batch_size, shuffle):
 
     assert os.path.isfile(in_file), '[error] dataset path not found'
 
-    n_points = 1024     #CHANGE WHEN INPUTTING NEW DATA
+    n_points = 512     #CHANGE WHEN INPUTTING NEW DATA
     shuffle_buffer = 1000
 
     def _extract_fn(data_record):
@@ -63,13 +63,15 @@ def train():
     train_ds = load_dataset(config['train_ds'], config['batch_size'], config['shuffle'])
     val_ds = load_dataset(config['val_ds'], config['batch_size'], config['shuffle'])
     
+    cp_loc = './logs/{}/model/weights' + str(sample_size) + '_bs' + str(config['batch_size'])
+    
     callbacks = [
     keras.callbacks.TensorBoard(
     './logs/{}'.format(config['log_dir']), update_freq=50),
     keras.callbacks.ModelCheckpoint(
-    './logs/{}/model/weights'.format(config['log_dir']), 'val_sparse_categorical_accuracy', save_best_only=True),
+    cp_loc.format(config['log_dir']), 'val_sparse_categorical_accuracy', save_best_only=True),
     keras.callbacks.ReduceLROnPlateau(
-    monitor='val_loss', factor=0.2, min_delta=0.01, patience=6, min_lr=0.000001)
+    monitor='val_loss', factor=0.2, min_delta=0.025, patience=6, min_lr=0.000001)
     ]
 
     model.build((config['batch_size'], config['input_event_len'], 3))
@@ -87,24 +89,25 @@ def train():
     validation_steps=10,
     validation_freq=1,
     callbacks=callbacks,
-    epochs=100,
+    epochs=75,
     verbose=1
     )
-    cnn.plot_learning_curve(history)
+    np.save('ModelLoss', history.history['loss'])
+    np.save('ModelValLoss', history.history['val_loss'])
 
 
 if __name__ == '__main__':
     
-    sample_size = 1024
+    sample_size = 512
     
     config = {
-    'train_ds' : 'data/Mg22_size' + str(sample_size) + '_train.tfrecord',   
-    'val_ds' : 'data/Mg22_size' + str(sample_size) + '_val.tfrecord',   
+    'train_ds' : 'data/Mg22_size' + str(sample_size) + '_4-track_train.tfrecord',   
+    'val_ds' : 'data/Mg22_size' + str(sample_size) + '_4-track_val.tfrecord',   
     'log_dir' : 'scannet_1',
     'log_freq' : 10,
     'test_freq' : 100,
-    'batch_size' : 32,
-    'num_classes' : 7,    #CHANGE
+    'batch_size' : 8,
+    'num_classes' : 4,    #CHANGE
     'lr' : 0.001,
     'bn' : False,
     'shuffle' : True,
